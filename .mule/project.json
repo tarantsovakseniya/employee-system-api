@@ -1,0 +1,10 @@
+{
+  "modelVersion": "1.0.0",
+  "name": "employee-system-api",
+  "version": "1.0.0-SNAPSHOT",
+  "source": "file:///Users/kseniiatarantsova/AnypointStudio/demo/employee-sapi-demo/pom.xml",
+  "natures": [
+    "mule"
+  ],
+  "components": []
+}
