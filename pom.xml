@@ -28,22 +28,6 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-					<cloudHubDeployment>
-						<uri>https://anypoint.mulesoft.com</uri>
-						<muleVersion>${app.runtime}</muleVersion>
-						<connectedAppClientId>${connected.app.id}</connectedAppClientId>
-						<connectedAppClientSecret>${connected.app.secret}</connectedAppClientSecret>
-						<connectedAppGrantType>client_credentials</connectedAppGrantType>
-						<applicationName>${project.artifactId}-${app.version}-${mule.env}</applicationName>
-						<environment>${cloudhub.environment}</environment>
-						<region>${cloudhub.region}</region>
-						<workers>${cloudhub.workers}</workers>
-						<workerType>${cloudhub.worker.type}</workerType>
-						<properties>
-							<mule.env>${mule.env}</mule.env>
-							<secure.key>${secure.key}</secure.key>
-						</properties>
-					</cloudHubDeployment>
 					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
