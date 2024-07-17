@@ -1,0 +1,58 @@
+name: mulesoft-pipeline
+
+on:
+    workflow_dispatch:
+        inputs:
+            deploy_target:
+                type: choice
+                description: Deployment target
+                required: true
+                options:
+                    - Sandbox
+
+jobs:
+    build_and_deploy_job:
+        name: Build and Deploy Job
+        runs-on: ubuntu-latest
+        env:
+            NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}   
+            NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+            CONNECTED_APP_ID: ${{ secrets.CONNECTED_APP_ID }}
+            CONNECTED_APP_SECRET: ${{ secrets.CONNECTED_APP_SECRET }}
+        steps:
+            - name: Get the code
+              uses: actions/checkout@v4
+            
+            - name: Set Up Java
+              uses: actions/setup-java@v4
+              with:
+                distribution: 'adopt-hotspot'
+                java-version: '8'
+                cache: maven
+
+            - name: Run MUnit tests
+              run: mvn clean test -Dsecure.key=${{ secrets.MULE_KEY }} --settings .maven/settings.xml
+
+            - name: Build the jar
+              run: mvn package -Dsecure.key=${{ secrets.MULE_KEY }} --settings .maven/settings.xml -DskipTests
+              
+            - name: Deploy to CloudHub
+              env:
+                CLOUDHUB_WORKER: "1"
+                CLOUDHUB_WORKER_TYPE: "MICRO"
+                CLOUDHUB_REGION: "ca-central-1"
+                CLOUDHUB_ENVIRONMENT: ${{ inputs.deploy_target }}
+                MULE_KEY: ${{ secrets.MULE_KEY }}            
+              run: |
+                muleEnv=$(echo ${{ env.CLOUDHUB_ENVIRONMENT }} | sed -e 's/\(.*\)/\L\1/')
+                artifactName=$( ls target/*.jar | head -1 )
+                mvn deploy -B -DskipTests -DmuleDeploy \
+                    -Dmule.artifact=$artifactName \
+                    -Dsecure.key="$MULE_KEY" \
+                    -Dconnected.app.id=${{ env.CONNECTED_APP_ID }} \
+                    -Dconnected.app.secret=${{ env.CONNECTED_APP_SECRET }} \
+                    -Dcloudhub.environment=${{ inputs.deploy_target }} \
+                    -Dcloudhub.region=${{ env.CLOUDHUB_REGION }} \
+                    -Dcloudhub.worker.type=${{ env.CLOUDHUB_WORKER_TYPE }} \
+                    -Dcloudhub.worker=${{ env.CLOUDHUB_WORKER }} \
+                    -Dmule.env=$muleEnv             
